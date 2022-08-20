@@ -1,1 +1,1 @@
-first commit
+task manager based on the one created by John Smilga on his node.js / express course
