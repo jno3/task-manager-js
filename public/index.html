@@ -18,12 +18,86 @@
                         type="text"
                         name="task"
                         id="task"
+                        class="form-input"
                         autocomplete="false"
                     />
+                    <small class="form-alert"></small>
                 </div>
-                <button type="submit">submit</button>
+                <button type="submit" class="submit-btn">submit</button>
             </form>
+            <div class="tasks"></div>
         </section>
     </main>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"
+        integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ=="
+        crossorigin="anonymous"
+    ></script>
+    <script>
+        const result = document.querySelector('.tasks')
+        const LINK = 'http://localhost:5000/api/v1/tasks/'
+        
+        function elementString(taskText, taskId){
+            return `<h5>${taskText}</h5>
+            <button onclick="deleteTask(this.value)" value=${taskId}>Delete Task</button>`
+/*            return `<h5>${taskText}</h5>
+            <iframe id="iframe" name="dummyframe" style="display: none"></iframe>
+            <form action="${LINK}${taskId}" method="delete" target="dummyframe">
+                <input type="submit" value="Edit Task"/>
+            </form>
+            <form action="${LINK}${taskId}" method="put" target="dummyframe">
+                <input type="submit" value="Delete Task" class="del-btn"/>
+            </form>
+            `
+*/
+
+        }
+
+        const fetchTasks = async () => {
+            try{
+                const { data } = await axios.get('/api/v1/tasks')
+                const tasks = data.data.map((task) => {
+                    return elementString(task.task, task._id)
+                    //return `<h5>${task.task}</h5>`
+                })
+                result.innerHTML = tasks.join('')
+            }
+            catch (error){
+                result.innerHTML = `<div class="alert alert-danger">Can't Fetch Data</div>`
+            }
+        }
+        fetchTasks()
+
+        const btn = document.querySelector('.submit-btn')
+        const input = document.querySelector('.form-input')
+        const formAlert = document.querySelector('.form-alert')
+
+        btn.addEventListener('click', async(e) => {
+            e.preventDefault()
+            const taskValue = input.value
+
+            try{
+                const { data } = await axios.post('/api/v1/tasks', {task: taskValue, completed: false})
+                const h5 = document.createElement('h5')
+                h5.textContent = data.task
+                result.appendChild(h5)
+            }
+            catch (error){
+                formAlert.textContent = error.response.data.msg
+            }
+            input.value = ''
+        })
+
+        async function deleteTask(id){
+            try{
+                await axios.delete(`${LINK}${id}`)
+            }
+            catch (error){
+                formAlert.textContent = error.response.data.msg
+            }
+        }
+        
+        
+    </script>
 </body>
 </html>
