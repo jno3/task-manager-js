@@ -5,8 +5,12 @@
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
     <title>Task manager</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
-    <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js" integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ==" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
 </head>
+
 <body>
     <main>
         <section>
@@ -28,36 +32,35 @@
             <div class="tasks"></div>
         </section>
     </main>
-    <script
-        src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"
-        integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ=="
-        crossorigin="anonymous"
-    ></script>
+
     <script>
         const result = document.querySelector('.tasks')
         const LINK = 'http://localhost:5000/api/v1/tasks/'
         
-        function elementString(taskText, taskId){
-            return `<h5>${taskText}</h5>
-            <button onclick="deleteTask(this.value)" value=${taskId}>Delete Task</button>`
-/*            return `<h5>${taskText}</h5>
-            <iframe id="iframe" name="dummyframe" style="display: none"></iframe>
-            <form action="${LINK}${taskId}" method="delete" target="dummyframe">
-                <input type="submit" value="Edit Task"/>
-            </form>
-            <form action="${LINK}${taskId}" method="put" target="dummyframe">
-                <input type="submit" value="Delete Task" class="del-btn"/>
-            </form>
+        function elementString(taskObject){
+            const newObject = JSON.stringify(taskObject)
+            return `
+            <h5>${taskObject.task}</h5>
+            <button
+            type="button"
+            value='`+`${newObject}`+`'
+            class="btn btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#exampleModal"
+            onclick="passData(this.value, true)">
+                Edit Task
+            </button>
+            <button onclick="deleteTask(this.value)" value="${taskObject._id}">
+                Delete Task
+            </button>
             `
-*/
-
         }
 
         const fetchTasks = async () => {
             try{
                 const { data } = await axios.get('/api/v1/tasks')
                 const tasks = data.data.map((task) => {
-                    return elementString(task.task, task._id)
+                    return elementString(task)
                     //return `<h5>${task.task}</h5>`
                 })
                 result.innerHTML = tasks.join('')
@@ -74,7 +77,8 @@
 
         btn.addEventListener('click', async(e) => {
             e.preventDefault()
-            const taskValue = input.value
+            console.log(input.value)
+            const taskValue = input.value.replaceAll("\'", "\"")
 
             try{
                 const { data } = await axios.post('/api/v1/tasks', {task: taskValue, completed: false})
@@ -86,18 +90,69 @@
                 formAlert.textContent = error.response.data.msg
             }
             input.value = ''
+            window.location.reload()
         })
 
         async function deleteTask(id){
             try{
                 await axios.delete(`${LINK}${id}`)
+                window.location.reload()
             }
             catch (error){
                 formAlert.textContent = error.response.data.msg
             }
         }
+
+        async function updateTask(id, data){
+            try{
+                await axios.put(`${LINK}${id}`, data)
+            }catch{
+                formAlert.textContent = error.response.data.msg
+            }
+        }
+
+        function passData(objectString, key){
+            objectTask = JSON.parse(objectString)
+            if(key){
+                document.getElementById('editButton').value = objectString
+                document.getElementById('editInput').value = objectTask.task
+                document.getElementById('editCheckbox').checked = objectTask.completed
+            }else{
+                const taskId = objectTask._id
+                const textValue = document.getElementById('editInput').value
+                const finishedValue = document.getElementById('editCheckbox').checked
+                const data = {task: textValue, completed: finishedValue}
+                console.log(data)
+                updateTask(taskId, data)
+            }
+        }
+
         
-        
+
     </script>
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Edit Task</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form class="mx-auto">
+                    <div class="mb-3 mt-4">
+                        <input id="editInput" type="text" class="form-control" id="editTaskInput">
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input id="editCheckbox" type="checkbox" class="form-check-input">
+                        <label class="form-check-label" for="editCheckbox">Complete</label>
+                    </div>
+                </form>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button id="editButton" type="button" class="btn btn-primary" onclick="passData(this.value, null)">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

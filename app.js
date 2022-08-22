@@ -82,6 +82,30 @@ app.delete('/api/v1/tasks/:id', (req, res) => {
     })
 })
 
+async function updateTask(client, taskId, data){
+    try{
+        await client.connect()
+        await client.db("task_manager_db")
+        .collection("tasks")
+        .updateOne({_id: ObjectId(taskId)}, {$set: data})
+    }
+    catch(error){
+        console.error(error)
+    }
+    finally{
+        await client.close()
+    }
+}
+
+app.put('/api/v1/tasks/:id', (req, res) => {
+    updateTask(client, req.params.id, req.body).then(()=>{
+        return res.status(200).json({success: true, data: req.params.id})
+    }).catch((error) => {
+        console.log(error)
+        return res.status(501).send(`couldn't get the id ${req.params.id} from the database`)
+    })
+})
+
 app.listen(PORT, () => {
     console.log(`the server is listening on port ${PORT}`)
 })
