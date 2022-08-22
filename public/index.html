@@ -1,34 +1,39 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset='utf-8'>
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
     <title>Task manager</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js" integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ==" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"
+        integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ=="
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
     <main>
         <section>
-            <form>
-                <h3>Task Manager</h3>
-                <div>
-                    <label for="task">enter task</label>
-                    <input 
-                        type="text"
-                        name="task"
-                        id="task"
-                        class="form-input"
-                        autocomplete="false"
-                    />
-                    <small class="form-alert"></small>
+            <div class=" shadow mx-5 my-5 p-3 bg-grey text-black rounded">
+                <div class="d-flex justify-content-center">
+                    <form>
+                        <h3>Add new task</h3>
+                        <div class="input-group mb-3">
+                            <input type="text" name="task" id="task" class="form-control form-input" autocomplete="false" />
+                            <small class="form-alert"></small>
+                            <div class="input-group-append">
+                                <button type="submit" class="submit-btn btn btn-primary ">Submit</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-                <button type="submit" class="submit-btn">submit</button>
-            </form>
+            </div>
             <div class="tasks"></div>
         </section>
     </main>
@@ -36,28 +41,35 @@
     <script>
         const result = document.querySelector('.tasks')
         const LINK = 'http://localhost:5000/api/v1/tasks/'
-        
-        function elementString(taskObject){
+
+        function elementString(taskObject) {
             const newObject = JSON.stringify(taskObject)
             return `
-            <h5>${taskObject.task}</h5>
-            <button
-            type="button"
-            value='`+`${newObject}`+`'
-            class="btn btn-primary"
-            data-bs-toggle="modal"
-            data-bs-target="#exampleModal"
-            onclick="passData(this.value, true)">
-                Edit Task
-            </button>
-            <button onclick="deleteTask(this.value)" value="${taskObject._id}">
-                Delete Task
-            </button>
+            <div class="big-ctr shadow-lg mx-5 my-5 p-3 bg-grey text-black rounded">
+                <div class="parte0">
+                <h5 class="parte1">${taskObject.task}</h5>
+                <div class="parte2 btn-group" role="group">
+                    <button
+                    type="button"
+                    value='`+ `${newObject}` + `'
+                    class="btn btn-primary mx-1 rounded glyphicon glyphicon-edit"
+                    data-bs-toggle="modal"
+                    data-bs-target="#exampleModal"
+                    onclick="passData(this.value, true)">
+                        Edit task
+                    </button>
+
+                    <button onclick="deleteTask(this.value)" class="btn btn-primary mx-1 rounded" value="${taskObject._id}">
+                        Delete task
+                    </button>
+                </div>
+                </div>
+            </div>
             `
         }
 
         const fetchTasks = async () => {
-            try{
+            try {
                 const { data } = await axios.get('/api/v1/tasks')
                 const tasks = data.data.map((task) => {
                     return elementString(task)
@@ -65,7 +77,7 @@
                 })
                 result.innerHTML = tasks.join('')
             }
-            catch (error){
+            catch (error) {
                 result.innerHTML = `<div class="alert alert-danger">Can't Fetch Data</div>`
             }
         }
@@ -75,59 +87,60 @@
         const input = document.querySelector('.form-input')
         const formAlert = document.querySelector('.form-alert')
 
-        btn.addEventListener('click', async(e) => {
+        btn.addEventListener('click', async (e) => {
             e.preventDefault()
-            console.log(input.value)
             const taskValue = input.value.replaceAll("\'", "\"")
 
-            try{
-                const { data } = await axios.post('/api/v1/tasks', {task: taskValue, completed: false})
+            try {
+                const { data } = await axios.post('/api/v1/tasks', { task: taskValue, completed: false })
                 const h5 = document.createElement('h5')
                 h5.textContent = data.task
                 result.appendChild(h5)
             }
-            catch (error){
+            catch (error) {
                 formAlert.textContent = error.response.data.msg
             }
             input.value = ''
             window.location.reload()
         })
 
-        async function deleteTask(id){
-            try{
+        async function deleteTask(id) {
+            try {
                 await axios.delete(`${LINK}${id}`)
                 window.location.reload()
             }
-            catch (error){
+            catch (error) {
                 formAlert.textContent = error.response.data.msg
             }
         }
 
-        async function updateTask(id, data){
-            try{
+        async function updateTask(id, data) {
+            try {
                 await axios.put(`${LINK}${id}`, data)
-            }catch{
+            } catch {
                 formAlert.textContent = error.response.data.msg
             }
         }
 
-        function passData(objectString, key){
+        async function passData(objectString, key) {
             objectTask = JSON.parse(objectString)
-            if(key){
+            if (key) {
                 document.getElementById('editButton').value = objectString
                 document.getElementById('editInput').value = objectTask.task
                 document.getElementById('editCheckbox').checked = objectTask.completed
-            }else{
+            } else {
                 const taskId = objectTask._id
                 const textValue = document.getElementById('editInput').value
                 const finishedValue = document.getElementById('editCheckbox').checked
-                const data = {task: textValue, completed: finishedValue}
-                console.log(data)
-                updateTask(taskId, data)
+                const data = { task: textValue, completed: finishedValue }
+                await updateTask(taskId, data).then(() => {
+                    document.getElementById('closeModalBtn').click()
+                    window.location.reload()
+                })
             }
         }
 
-        
+
 
     </script>
     <!-- Modal -->
@@ -148,11 +161,14 @@
                     </div>
                 </form>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button id="editButton" type="button" class="btn btn-primary" onclick="passData(this.value, null)">Save changes</button>
+                    <button id="closeModalBtn" type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">Close</button>
+                    <button id="editButton" type="button" class="btn btn-primary"
+                        onclick="passData(this.value, null)">Save changes</button>
                 </div>
             </div>
         </div>
     </div>
 </body>
+
 </html>
